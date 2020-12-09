@@ -49,7 +49,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang-10 CXX=/usr/bin/clang++-10 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib ..
+          CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang-10 CXX=/usr/bin/clang++-10 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib -DTD_ENABLE_LTO=ON ..
           cmake --build . --target install -- -j4
           
           
@@ -74,8 +74,8 @@ jobs:
           # The URL for uploading assets to the release
           upload_url: ${{ env.UPLOAD_URL }}
           # The path to the asset you want to upload
-          asset_path: ./tdlight_gcc-${{ env.SAFE_ARCH }}.zip
+          asset_path: ./tdlight_clang-LTO-${{ env.SAFE_ARCH }}.zip
           # The name of the asset you want to upload
-          asset_name: tdlight_gcc-${{ env.SAFE_ARCH }}.zip
+          asset_name: tdlight_clang-LTO-${{ env.SAFE_ARCH }}.zip
           # The content-type of the asset you want to upload. See the supported Media Types here: https://www.iana.org/assignments/media-types/media-types.xhtml for more information
           asset_content_type: application/zip
