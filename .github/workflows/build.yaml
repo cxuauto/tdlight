@@ -1,6 +1,7 @@
 name: Build TDLib
 
 on:
+  workflow_dispatch:
   push:
   pull_request:
   schedule:
@@ -37,14 +38,44 @@ jobs:
             ${{ runner.os }}-${{ env.SAFE_ARCH }}-ccache-
       - name: Install build tools
         run: sudo apt-get install -y make git zlib1g-dev libssl-dev gperf php-cli cmake clang-6.0 libc++-dev libc++abi-dev ccache
+        
+      - name: Get upload URL
+        run: |
+          upload_url=$(curl -sL https://api.github.com/repos/cxuauto/tdlight-telegram-bot-api/releases/latest | jq -r '.upload_url')
+          echo "UPLOAD_URL=$upload_url" >> $GITHUB_ENV
+          echo ${{ env.UPLOAD_URL }}
+          
       - name: Build
         run: |
           mkdir build
           cd build
           CXXFLAGS="-stdlib=libc++" CC=/usr/bin/clang-10 CXX=/usr/bin/clang++-10 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=../tdlib ..
           cmake --build . --target install -- -j4
+          
+          
+      - name: pack zip
+        run: |
+          ls -l
+          ls -l tdlib || echo tdlib-no
+          ls -l tdlib/lib || echo tdlib-lib-no
+          ls -l tdlight/tdlib || echo tdlib-lib-no
+          7z a tdlight_gcc-${{ env.SAFE_ARCH }}.zip tdlib/*
+
       - uses: actions/upload-artifact@v2
         with:
           name: tdlight-${{ env.SAFE_ARCH }}
           path: tdlib/lib
 
+      - name: Upload a Release Asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # The URL for uploading assets to the release
+          upload_url: ${{ env.UPLOAD_URL }}
+          # The path to the asset you want to upload
+          asset_path: ./tdlight_gcc-${{ env.SAFE_ARCH }}.zip
+          # The name of the asset you want to upload
+          asset_name: tdlight_gcc-${{ env.SAFE_ARCH }}.zip
+          # The content-type of the asset you want to upload. See the supported Media Types here: https://www.iana.org/assignments/media-types/media-types.xhtml for more information
+          asset_content_type: application/zip
